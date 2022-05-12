@@ -193,3 +193,50 @@ Downloads:        0
 
 - **Vagrant Cloud** - https://app.vagrantup.com/ags36/boxes/centos-7-5
 
+# TASK*
+```
+manual_kernel_update ► vagrant ssh
+[vagrant@kernel-update ~]$ uname -r
+3.10.0-1127.el7.x86_64
+[vagrant@kernel-update ~]$ sudo yum group install "Development Tools"
+[vagrant@kernel-update ~]$ sudo yum install devtoolset-7 ; scl enable devtoolset-7 bash
+[vagrant@kernel-update ~]$ sudo yum install openssl-devel 
+[vagrant@kernel-update ~]$ wget https://www.kernel.org/
+[vagrant@kernel-update ~]$ tar xvf linux*
+[vagrant@kernel-update linux-5.17.6]$ cp /boot/config-3.10.0-1127.el7.x86_64 .config
+[vagrant@kernel-update linux-5.17.6]$ make oldconfig
+.config:697:warning: symbol value 'm' invalid for CPU_FREQ_STAT
+.config:941:warning: symbol value 'm' invalid for NF_CT_PROTO_GRE
+.config:969:warning: symbol value 'm' invalid for NF_NAT_REDIRECT
+.config:972:warning: symbol value 'm' invalid for NF_TABLES_INET
+.config:1139:warning: symbol value 'm' invalid for NF_TABLES_IPV4
+.config:1143:warning: symbol value 'm' invalid for NF_TABLES_ARP
+.config:1184:warning: symbol value 'm' invalid for NF_TABLES_IPV6
+.config:1559:warning: symbol value 'm' invalid for NET_DEVLINK
+.config:2719:warning: symbol value 'm' invalid for ISDN_CAPI
+.config:3664:warning: symbol value 'm' invalid for LIRC
+*
+* Restart config...
+*
+*
+* General setup
+*
+Compile also drivers which will not load (COMPILE_TEST) [N/y/?] (NEW) 
+[vagrant@kernel-update linux-5.17.6]$ make
+[vagrant@kernel-update linux-5.17.6]$ make modules
+[vagrant@kernel-update linux-5.17.6]$ sudo make modules_install
+[vagrant@kernel-update linux-5.17.6]$ sudo make install
+[vagrant@kernel-update linux-5.17.6]$ sudo grub2-mkconfig -o /boot/grub2/grub.cfg
+Generating grub configuration file ...
+Found linux image: /boot/vmlinuz-5.17.6
+Found initrd image: /boot/initramfs-5.17.6.img
+Found linux image: /boot/vmlinuz-3.10.0-1127.el7.x86_64
+Found initrd image: /boot/initramfs-3.10.0-1127.el7.x86_64.img
+done
+[vagrant@kernel-update linux-5.17.6]$ sudo grub2-set-default 0
+[vagrant@kernel-update linux-5.17.6]$ sudo reboot
+manual_kernel_update ► vagrant ssh
+Last login: Thu May 12 08:56:26 2022 from 10.0.2.2
+[vagrant@kernel-update ~]$ uname -r
+5.17.6
+```

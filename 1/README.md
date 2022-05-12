@@ -121,7 +121,7 @@ Last login: Mon May  9 22:49:12 2022 from 10.0.2.2
 [vagrant@kernel-update ~]$
 ```
 
-# **packer build
+# **packer build**
 ```
 ...
 
@@ -137,7 +137,7 @@ packer ► ls
 centos-7.7.1908-kernel-5-x86_64-Minimal.box  centos.json  http  new.json  scripts
 ```
 
-# **vagrant init (тестирование)
+# **vagrant init (тестирование)**
 ```
 packer ► vagrant box add --name centos-7-5 centos-7.7.1908-kernel-5-x86_64-Minimal.box
 ==> box: Box file was not detected as metadata. Adding it directly...
@@ -177,7 +177,7 @@ Last login: Wed May 11 20:17:06 2022 from 10.0.2.2
 5.17.6-1.el7.elrepo.x86_64
 ```
 
-# **Vagrant cloud
+# **Vagrant cloud**
 ```
 Releasing box...
 Complete! Published ags36/centos-7-5

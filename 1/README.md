@@ -240,3 +240,15 @@ Last login: Thu May 12 08:56:26 2022 from 10.0.2.2
 [vagrant@kernel-update ~]$ uname -r
 5.17.6
 ```
+# TASK**
+```
+заменил config.vm.synced_folder ".", "/vagrant", disabled: true на
+config.vm.synced_folder ".", "/vagrant",  :mount_options => ["dmode=755,fmode=755"]
+
+manual_kernel_update ► vagrant ssh
+Last login: Thu May 12 16:56:20 2022 from 10.0.2.2
+[vagrant@kernel-update ~]$ cd /vagrant/
+[vagrant@kernel-update vagrant]$ ls
+manual  packer  Vagrantfile
+[vagrant@kernel-update vagrant]$ 
+```

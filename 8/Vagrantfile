@@ -1,0 +1,72 @@
+# Describe VMs
+MACHINES = {
+  # VM name "kernel update"
+  :"systemd" => {
+              # VM box
+              :box_name => "centos/7",
+              # VM CPU count
+              :cpus => 2,
+              # VM RAM size (Mb)
+              :memory => 2048,
+              # networks
+              :net => [],
+              # forwarded ports
+              :forwarded_port => []
+            }
+}
+
+Vagrant.configure("2") do |config|
+  MACHINES.each do |boxname, boxconfig|
+    # Disable shared folders
+    config.vm.synced_folder ".", "/vagrant",  :mount_options => ["dmode=755,fmode=755"]
+    # Apply VM config
+    config.vm.define boxname do |box|
+      # Set VM base box and hostname
+      box.vm.box = boxconfig[:box_name]
+      box.vm.host_name = boxname.to_s
+      # Additional network config if present
+      if boxconfig.key?(:net)
+        boxconfig[:net].each do |ipconf|
+          box.vm.network "private_network", ipconf
+        end
+      end
+      # Port-forward config if present
+      if boxconfig.key?(:forwarded_port)
+        boxconfig[:forwarded_port].each do |port|
+          box.vm.network "forwarded_port", port
+        end
+      end
+      # VM resources config
+      box.vm.provider "virtualbox" do |v|
+        # Set VM RAM size and CPU count
+        v.memory = boxconfig[:memory]
+        v.cpus = boxconfig[:cpus]
+      end
+      box.vm.provision "shell", privileged: true, inline: <<-SHELL
+        yum install epel-release -y 
+        yum install spawn-fcgi php php-climod_fcgid httpd -y
+        cp /vagrant/watchlog /etc/sysconfig/watchlog
+        touch /var/log/watchlog.log | echo "dslkfjsdlf ALERT" > /var/log/watchlog.log
+        cp /vagrant/watchlog.sh /opt/watchlog.sh
+        chmod +x /opt/watchlog.sh
+        cp /vagrant/watchlog.service /etc/systemd/system/
+        cp /vagrant/watchlog.timer /etc/systemd/system/
+        systemctl daemon-reload
+        systemctl start watchlog.timer
+        echo "SOCKET=/var/run/php-fcgi.sock" >> /etc/sysconfig/spawn-fcgi
+        echo 'OPTIONS="-u apache -g apache -s $SOCKET -S -M 0600 -C 32 -F 1 -P /var/run/spawn-fcgi.pid -- /usr/bin/php-cgi"' >> /etc/sysconfig/spawn-fcgi
+        cp /vagrant/spawn-fcgi.service /etc/systemd/system/spawn-fcgi.service
+        systemctl daemon-reload
+        systemctl start spawn-fcgi
+        echo "TASK 2"
+        cp /vagrant/httpd@*.service /etc/systemd/system/
+        cp /vagrant/*.conf /etc/httpd/conf/
+        echo "OPTIONS=-f conf/first.conf" > /etc/sysconfig/httpd-first
+        echo "OPTIONS=-f conf/second.conf" > /etc/sysconfig/httpd-second
+        systemctl start httpd@first
+        systemctl start httpd@second
+        SHELL
+    end
+  end
+end
+

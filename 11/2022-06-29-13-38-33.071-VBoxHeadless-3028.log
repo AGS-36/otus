@@ -1,0 +1,12 @@
+Log created: 2022-06-29T13:38:33.717870000Z
+Process ID:  3028 (0xbd4)
+Parent PID:  1 (0x1)
+Executable:  /usr/lib/virtualbox/VBoxHeadless
+Arg[0]: /usr/lib/virtualbox/VBoxHeadless
+Arg[1]: --comment
+Arg[2]: 11_nginx_1656509167570_58366
+Arg[3]: --startvm
+Arg[4]: ce2ee335-a126-4acd-b38c-771902dbe534
+Arg[5]: --vrde
+Arg[6]: config
+AddRef: illegal refcnt=3221225469 state=2

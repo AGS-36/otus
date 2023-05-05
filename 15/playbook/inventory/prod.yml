@@ -1,0 +1,17 @@
+---
+all:
+  hosts:
+    vm_1:
+      ansible_host: 192.168.50.10
+      ansible_user: vagrant 
+    vm_2:
+      ansible_host: 192.168.50.15
+      ansible_user: root
+  children:
+    web:
+      hosts:
+        vm_1:
+    log:
+      hosts:
+        vm_2:
+

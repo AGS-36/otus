@@ -1,0 +1,107 @@
+---
+- name: Install nginx
+  hosts: web
+  handlers:
+    - name: Restart nginx service
+      become: true
+      ansible.builtin.service:
+        name: nginx.service
+        state: restarted
+  tasks:
+    - name: Install epel-release packages
+      become: true
+      ansible.builtin.yum:
+        name: epel-release
+        state: present
+    - name: Install nginx packages
+      become: true
+      ansible.builtin.yum:
+        name: nginx
+        state: present
+    - name: Enable and start nginx
+      become: true
+      ansible.builtin.systemd:
+        name: nginx.service
+        state: started
+        enabled: true
+    - name: Template a file to /etc/nginx/nginx.conf
+      become: true
+      ansible.builtin.template:
+        src: nginx.conf
+        dest: /etc/nginx/nginx.conf
+        #mode: '0644'
+      notify: Restart nginx service
+    - name: Add a line to a file
+      become: true
+      ansible.builtin.lineinfile:
+        path: /etc/audit/rules.d/audit.rules
+        line: "{{ item }}"
+        create: yes
+        state: present
+      loop:
+        - "-w /etc/nginx/nginx.conf -p wa -k nginx_conf"
+        - "-w /etc/nginx/default.d/ -p wa -k nginx_conf"
+    - name: Install audispd-plugins
+      become: true
+      ansible.builtin.yum:
+        name: audispd-plugins
+        state: present
+    - name: Changed some lines in /etc/audit/auditd.conf
+      become: true
+      ansible.builtin.lineinfile:
+        path: /etc/audit/auditd.conf
+        state: present
+        search_string: "{{ item.old_str }}"
+        line: "{{ item.new_str }}"
+      loop:
+        - { old_str: "log_format", new_str: "log_format = RAW" }
+        - { old_str: "name_format", new_str: "name_format = HOSTNAME" }
+    - name: Changed /etc/audisp/plugins.d/au-remote.conf
+      become: true
+      ansible.builtin.lineinfile:
+        path: /etc/audisp/plugins.d/au-remote.conf
+        state: present
+        search_string: active
+        line: "active = yes"
+    - name: Changed /etc/audisp/audisp-remote.conf
+      become: true
+      ansible.builtin.lineinfile:
+        path: /etc/audisp/audisp-remote.conf
+        state: present
+        search_string: remote_server
+        line: "remote_server = 192.168.50.15"
+    - name: Restart service auditd
+      become: true
+      ansible.builtin.shell: /sbin/service auditd restart
+        
+        
+- name: Install rsyslog
+  hosts: log
+  tasks:
+    - name: install rsyslog
+      become: true
+      ansible.builtin.yum:
+        name: rsyslog
+        state: present
+    - name: Template a file to /etc/rsyslog.conf
+      become: true
+      ansible.builtin.template:
+        src: rsyslog.conf
+        dest: /etc/rsyslog.conf
+        #mode: '0644'
+    - name: Restart rsyslog
+      become: true
+      ansible.builtin.systemd:
+        name: rsyslog.service
+        state: restarted
+        enabled: true
+    - name: Open port in file /etc/audit/auditd.conf
+      become: true
+      ansible.builtin.lineinfile:
+        path: /etc/audit/auditd.conf
+        state: present
+        search_string: "##tcp_listen_port = 60"
+        line: tcp_listen_port = 60
+    - name: Restart service auditd
+      become: true
+      ansible.builtin.shell: /sbin/service auditd restart

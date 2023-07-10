@@ -1,0 +1,68 @@
+#Начало файла provision.yml
+- name: Confugure servers
+  hosts: all
+  become: yes
+  tasks:
+    - name: install tools
+      apt:
+        name:
+          - openvpn
+          - iperf3
+        state: present
+        update_cache: true
+
+    - name: Create key 
+      template:
+        src: static.key
+        dest: /etc/openvpn/static.key
+#        mode: 0744
+
+    - name: disable ufw service
+      service:
+        name: ufw
+        state: stopped
+        enabled: false
+
+- name: Configure server        
+  hosts: server
+  become: yes
+  tasks:
+#    - name: Create key
+#      ansible.builtin.shell: openvpn --genkey --secret /etc/openvpn/static.key
+
+    - name: Create server.conf
+      template:
+        src: server.conf
+        dest: /etc/openvpn/server.conf
+        mode: 0644
+
+    - name: Create openvpn unit
+      template:
+        src: openvpn@.service
+        dest: /etc/systemd/system/openvpn@.service
+        
+    - name: start openvpn
+      service:
+        name: openvpn
+        state: started
+        enabled: true
+        
+- name: Configure client        
+  hosts: client
+  become: yes
+  tasks:
+    - name: Create server.conf
+      template:
+        src: client.conf
+        dest: /etc/openvpn/server.conf
+
+    - name: Create openvpn unit
+      template:
+        src: openvpn@.service
+        dest: /etc/systemd/system/openvpn@.service
+        
+    - name: start openvpn
+      service:
+        name: openvpn
+        state: started
+        enabled: true
